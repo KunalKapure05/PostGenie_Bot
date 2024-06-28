@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
-import userModel from './src/models/User.js'
+import User from './src/models/User.js'
+import {message} from 'telegraf/filters'
 
 config();
 import { Telegraf } from "telegraf";
@@ -14,40 +15,36 @@ try {
     console.error(error);
     process.kill(process.pid,"SIGTERM")
 }
-bot.start(async(ctx)=>{
+bot.start(async (ctx) => {
     const from = ctx.update.message.from;
 
-    console.log('from',from);
+    console.log('from', from);
 
-    try {
-        await userModel.findOneandUpdate({tgId:from.id},{
-            $setOnIsert : {
-                firstName : from.firstName,
-                lastName : from.lastName,
-                username : from.username,
-                isBot: from.isBot
+    try{
+        await User.findOneAndUpdate({tgId:from.id},{
+            $setOnInsert:{
+                firstName:from.firstName,
+                lastName:from.lastName,
+                username:from.username,
+                isBot:from.isBot
             }
         },{
-            upsert: true,
-            new: true
+            upsert:true,
+            new:true
         })
 
-        await ctx.reply(`
-            Hey ${from.first_name}, Welcome to PostGenieBot! I'm here to help you create engaging content for your social media posts. Just keep feeding me your events that happened throughout your day.
-            `)
-    } 
-    
-    catch (error) {
-console.log(error);
+        await ctx.reply(`Hey ${from.first_name}, Welcome to PostGenieBot! I'm here to help you create engaging content for your social media posts. Just keep feeding me your events that happened throughout your day.`);
+    }
 
-await ctx.reply('Sorry for the incovenience caused , facing some diificulties at this moment')
+     catch (error) {
+        console.error('Error in /start command:', error);
+        await ctx.reply('Sorry for the inconvenience, facing some difficulties at this moment.');
+    }
+});
 
-       
-       
-    } 
-    
+bot.on(message('text'),async(ctx)=>{
+    ctx.reply('Got the message')
 })
-
 bot.launch();
 
 
