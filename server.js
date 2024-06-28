@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 import User from './src/models/User.js'
 import {message} from 'telegraf/filters'
+import Event from './src/models/Events.js'
 
 config();
 import { Telegraf } from "telegraf";
@@ -43,8 +44,28 @@ bot.start(async (ctx) => {
 });
 
 bot.on(message('text'),async(ctx)=>{
-    ctx.reply('Got the message')
+    const from = ctx.update.message.from;
+    const message = ctx.update.message.text;
+
+    try {
+        await Event.create({
+            text:message,
+            tgId : from.id
+        })
+
+        await ctx.reply(
+            `Noted , keep texting me your thoughts. to generate the posts,juat enter the command : /generate`
+        )
+    } catch (error) {
+        console.error(error);
+        await ctx.reply(' facing some difficulties at this moment, please try again');
+
+        
+    }
+   
 })
+
+bot.command()
 bot.launch();
 
 
