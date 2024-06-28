@@ -6,8 +6,6 @@ dotenv.config();
 const connectDb = async function(MongoURI){
 
 try {
-    await mongoose.connect(MongoURI);
-    
     const db = mongoose.connection;
     
     
@@ -23,6 +21,9 @@ try {
         console.log('MongoDB disconnected');
     });
     
+    await mongoose.connect(MongoURI);
+    
+   
 } catch (error) {
     return res.status(404).json({"Error":"Server Issue"})
 }
