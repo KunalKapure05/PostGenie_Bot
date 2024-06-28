@@ -43,6 +43,34 @@ bot.start(async (ctx) => {
     }
 });
 
+bot.command('generate',async(ctx)=>{
+    const from = ctx.update.message.from;
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0); // set to midnight
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999); // set to end of day
+   
+    //get events from that user
+    const events = await Event.find({
+        tgId:from.id,
+        createdAt:{
+            $gte: startOfDay,
+            $lte: endOfDay // today
+        }
+    })
+
+    if(events.length === 0 ){
+        await ctx.reply("No events found in the last 24 hours");
+        return;
+    }
+    console.log('events',events);
+    //make openai api call
+    //store token count
+    //send response
+    await ctx.reply("doing things")
+})
 bot.on(message('text'),async(ctx)=>{
     const from = ctx.update.message.from;
     const message = ctx.update.message.text;
@@ -65,7 +93,7 @@ bot.on(message('text'),async(ctx)=>{
    
 })
 
-bot.command()
+
 bot.launch();
 
 
