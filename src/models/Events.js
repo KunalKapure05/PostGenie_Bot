@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const eventSchema = mongoose.Schema({
-    text:{
-        type:String,
-        required:true
-    },
+        text:{
+            type:String,
+            required:true
+        },
 
     tgId:{
         type:String,
