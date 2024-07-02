@@ -5,38 +5,12 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Telegraf } from "telegraf";
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
-bot.start(async (ctx) => {
-    const from = ctx.update.message.from;
-
-    console.log('from', from);
-
-    try{
-        await User.findOneAndUpdate({tgId:from.id},{
-            $setOnInsert:{
-                firstName:from.firstName,
-                lastName:from.lastName,
-                username:from.username,
-                isBot:from.isBot
-            }
-        },{
-            upsert:true,
-            new:true
-        })
-
-        await ctx.reply(`Hey ${from.first_name}, Welcome to PostGenieBot! I'm here to help you create engaging content for your social media posts. Just keep feeding me your events that happened throughout your day.`);
-    }
-
-     catch (error) {
-        console.error('Error in /start command:', error);
-        await ctx.reply('Sorry for the inconvenience, facing some difficulties at this moment.');
-    }
-});
 
 bot.command('generate',async(ctx)=>{
     const from = ctx.update.message.from;
 
     const {message_id:loadingMessageId} = await ctx.reply(`
-        Hey ${from.first_name} , Kindly wait for a moment while i'm curating posts for you
+        Hey ${(from.first_name)} , Kindly wait for a moment while i'm curating posts for you
         🚀
 
         `)
@@ -76,7 +50,7 @@ bot.command('generate',async(ctx)=>{
             model: process.env.GEMINI_MODEL,
             systemInstruction: `Act as a senior Copywriter and you write highly engaging posts for linkedin,instagram and twitter using provided thoughts/events throughout the day.
             Write like a human for humans. Craft three engaging social media posts tailored for linkedin , Instagram and twitter audiences. Use simple language.Use given time labels just to understand the order of the event,dont mention the time in the posts.Each posts should be creatively highlight the following events. Ensure the tone is conversational and impactful. Focus on engaging the respective plaftorm's
-              audience ,encouraging the interaction, and driving the interest in the events:: ${events.map(event => event.text).join(', ')}`
+              audience ,encouraging the interaction, and driving the interest in the events:`
         });
     
         const chatSession = model.startChat({
@@ -122,6 +96,38 @@ bot.command('generate',async(ctx)=>{
    
     
 })
+
+
+
+
+bot.start(async (ctx) => {
+    const from = ctx.update.message.from;
+
+    console.log('from', from);
+
+    try{
+        await User.findOneAndUpdate({tgId:from.id},{
+            $setOnInsert:{
+                firstName:from.first_name,
+                lastName:from.last_name,
+                username:from.username,
+                isBot:from.isBot
+            }
+        },{
+            upsert:true,
+            new:true
+        })
+
+        await ctx.reply(`Hey ${from.first_name}👋, Welcome to PostGenieBot! I'm here to help you create engaging content for your social media posts. Just keep feeding me your events that happened throughout your day.`);
+    }
+
+     catch (error) {
+        console.error('Error in /start command:', error);
+        await ctx.reply('Sorry for the inconvenience, facing some difficulties at this moment.');
+    }
+});
+
+
 
 
 bot.on(message('text'),async(ctx)=>{
