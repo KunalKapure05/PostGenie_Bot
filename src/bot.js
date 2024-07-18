@@ -1,21 +1,26 @@
 import User from './models/User.js'
 import {message} from 'telegraf/filters'
 import Event from './models/Events.js'
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI,
+    HarmCategory,
+    HarmBlockThreshold } from '@google/generative-ai';
 import { Telegraf } from "telegraf";
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 bot.command('generate',async(ctx)=>{
     const from = ctx.update.message.from;
 
-    const {message_id:loadingMessageId} = await ctx.reply(`
+    const {message_id:waitingMessageId} = await ctx.reply(`
         Hey ${(from.first_name)} , Kindly wait for a moment while i'm curating posts for you
         🚀
 
         `)
 
-        const {message_id:LoadingStickerId} = await ctx.replyWithSticker(
+        const {message_id:loadingStickerId} = await ctx.replyWithSticker(
             'CAACAgIAAxkBAAMgZoJ8FxItPlgSqgzay-_qMM4aid4AAiwAAw220hn6lPv6A5mU_DUE'
         )
 
@@ -43,6 +48,27 @@ bot.command('generate',async(ctx)=>{
     console.log('events',events);
 
 
+    
+    const safetySetting = [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+
+        {
+        category:HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        }
+
+      ];
+
+      
+
+
     //make geminiAi api call
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -50,16 +76,25 @@ bot.command('generate',async(ctx)=>{
             model: process.env.GEMINI_MODEL,
             systemInstruction: `Act as a senior Copywriter and you write highly engaging posts for linkedin,instagram and twitter using provided thoughts/events throughout the day.
             Write like a human for humans. Craft three engaging social media posts tailored for linkedin , Instagram and twitter audiences. Use simple language.Use given time labels just to understand the order of the event,dont mention the time in the posts.Each posts should be creatively highlight the following events. Ensure the tone is conversational and impactful. Focus on engaging the respective plaftorm's
-              audience ,encouraging the interaction, and driving the interest in the events:`
-        });
+              audience ,encouraging the interaction, and driving the interest in the events:`,
+              
+        },
+    safetySetting);
     
         const chatSession = model.startChat({
             generationConfig: {
                 maxOutputTokens: 8192,
+
             },
+
+
         });
     
         const prompt = `Create posts for the following events: ${events.map(event => event.text).join(', ')}`;
+
+       
+
+        
         const result = await chatSession.sendMessage(prompt);
         const response = result.response;
         const text = response.text();
@@ -78,8 +113,8 @@ bot.command('generate',async(ctx)=>{
         }
             
         console.log('text', text);
-        await ctx.deleteMessage(LoadingStickerId);
-        await ctx.deleteMessage(loadingMessageId);
+        await ctx.deleteMessage(loadingStickerId);
+        await ctx.deleteMessage(waitingMessageId);
     
         await ctx.reply(text);
             
@@ -87,6 +122,8 @@ bot.command('generate',async(ctx)=>{
             
         } catch (error) {
             console.error(error);
+             await ctx.deleteMessage(loadingStickerId);
+        await ctx.deleteMessage(waitingMessageId);
             await ctx.reply(' facing some difficulties at this moment, please try again');
             
         }
