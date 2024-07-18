@@ -1,10 +1,8 @@
-import { config } from 'dotenv';
+import dotenv from 'dotenv';
 import connectDb from './src/config/db.js';
 import bot from './src/bot.js'
+dotenv.config();
 
-
-
-config();
 try {
     connectDb(process.env.MONGO_URI)
     
