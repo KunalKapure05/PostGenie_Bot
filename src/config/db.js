@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const connectDb = async function(MongoURI = 1000){
+const connectDb = async function(MongoURI){
 
 try {
     const db = mongoose.connection;
